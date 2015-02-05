@@ -5,8 +5,10 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -30,14 +32,16 @@ public class Spider {
 	final String name = "Golden-Retriever";
 	private HashMap<String, LinkedList<String>> prohibited;
 	private LinkedList<String> frontier;
-	private LinkedList<String> processedURLs;
-	private int linksVisted;
+	private ArrayList<String> processedURLs;
+	private int pagesVisited;
 	private int robotCount;
+	private int urlCount;
 	
 	public Spider(LinkedList<String> seeds){
 		frontier = new LinkedList<String>();
-		processedURLs = new LinkedList<String>();
+		processedURLs = new ArrayList<String>();
 		prohibited = new HashMap<String, LinkedList<String>>();
+		urlCount = seeds.size();
 		for (String seed : seeds)
 		{
 			frontier.push(seed);
@@ -54,17 +58,17 @@ public class Spider {
 	 */
 	public void explore(int delay, int completion, boolean restrict) {
 		
-		while (!frontier.isEmpty() && processedURLs.size() < completion){
+		while (!frontier.isEmpty()){  //&& processedURLs.size() < completion){
 			String urlString = httpFormatter(frontier.poll().replaceAll("#", ""));
 			if (restrict == true){
 				if ((!processedURLs.contains(urlString) && urlString.contains("cs.umass.edu"))){
-					exploreUtlity(urlString, delay);
+					exploreUtlity(urlString, delay, completion);
 				}
 			}
 			else if (restrict == false)
 			{
 				if (!processedURLs.contains(urlString)){
-					exploreUtlity(urlString, delay);
+					exploreUtlity(urlString, delay, completion);
 					
 				}
 					
@@ -83,7 +87,7 @@ public class Spider {
 	 * Retrieve all the a[href] (links) in that document
 	 * 
 	 */
-	private void exploreUtlity(String urlString,  int delay ){
+	private void exploreUtlity(String urlString,  int delay, int completion ){
 		Document doc;
 		String domainName = getDomainName(urlString);
 		  
@@ -92,7 +96,8 @@ public class Spider {
 		   }
 		
 			doc = createConnection(urlString);
-			
+			if (urlCount < completion)
+			pagesVisited++;
 			
 		    if (doc != null){
 		    	//processRobot(urlString);
@@ -105,9 +110,9 @@ public class Spider {
 		    		{				   
 		    			boolean allowed = true;
 					    //String urlPatched = urlPatcher(link);							    
-		    			if (urlPatched.contains("http") && ( urlPatched.contains(".pdf") || urlPatched.contains(".html")))
+		    			if (urlPatched.contains("http")) // && ( urlPatched.contains(".pdf") || urlPatched.contains(".html")))
 		    			{
-		    				if (disallowed != null)
+		    				if (disallowed != null && urlCount < completion)
 		    				for (int j = 0; j < disallowed.size(); j++){
 		    				  if (urlPatched.toLowerCase().contains(disallowed.get(j).toLowerCase())){
 		                          allowed = false;
@@ -115,8 +120,9 @@ public class Spider {
 		    				  }
 		    					
 		    				}
-		    				if (allowed){  
-		    				frontier.push(urlPatched);
+		    				if (allowed && urlCount < completion){  
+		    					frontier.push(urlPatched);
+		    					urlCount++;
 		    				}
 		    				else{ 
 		    					System.out.println();
@@ -210,7 +216,6 @@ public class Spider {
 					}
 				}
 		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -282,7 +287,6 @@ public class Spider {
 		try {
 			Document doc =  Jsoup.connect(urlString).get();
 			doc = Jsoup.parse(doc.html() , urlString);
-			linksVisted++;
 			return doc;
 			//return Jsoup.connect(urlString).ignoreContentType(false).get();
 			
@@ -301,7 +305,7 @@ public class Spider {
 	}
 	
 	public int getLinksVisted(){
-		return linksVisted;
+		return pagesVisited;
 	}
 	
 	public void printProcessedURLs(){

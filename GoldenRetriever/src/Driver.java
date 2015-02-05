@@ -7,7 +7,7 @@ public class Driver {
 	public static void main(String[] args) {
 		seeds.add("https://ciir.cs.umass.edu");
 		Spider spider = new Spider(seeds);
-		spider.explore(10, 100 , true);
+		spider.explore(1, 100 , true);
 		spider.printProcessedURLs();
 		System.out.println("The frontier still has " + spider.getFrontierSize() + " unique links");
 		System.out.println("The crawler has visted " + spider.getLinksVisted() + " pages");
