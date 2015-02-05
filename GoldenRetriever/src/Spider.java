@@ -55,7 +55,7 @@ public class Spider {
 	public void explore(int delay, int completion, boolean restrict) {
 		
 		while (!frontier.isEmpty() && processedURLs.size() < completion){
-			String urlString = urlPatcher(frontier.poll().replaceAll("#", ""));
+			String urlString = httpFormatter(frontier.poll().replaceAll("#", ""));
 			if (restrict == true){
 				if ((!processedURLs.contains(urlString) && urlString.contains("cs.umass.edu"))){
 					exploreUtlity(urlString, delay);
@@ -153,7 +153,7 @@ public class Spider {
 	 * @return formated string
 	 */
 	
-    private String urlPatcher(String url){
+    private String httpFormatter(String url){
     	String urlpatched = url;
     	if (url.contains("https")){ //Removing https and placing it with http
     		StringBuilder httpsFixer = new StringBuilder(url);
@@ -162,20 +162,18 @@ public class Spider {
     		urlpatched  = httpsFixer.toString();
     		return urlpatched;
     	} 
-    	else if (!url.contains("http")){ //For robots.txt when domain name is passed in
-    		System.out.println();
-    		System.out.println("ROBOTS.TEXT FIXER: Adding http and robots to url for processing");
-    		StringBuilder httpFixer = new StringBuilder(url);
-    		httpFixer = httpFixer.insert(0, "http://");
-    		httpFixer = httpFixer.append("/robots.txt");
-    		urlpatched = httpFixer.toString().replaceAll("#", "");
-    		System.out.println();
-    		return urlpatched;
-    	}
-    		return urlpatched;
     
+    		return urlpatched;
       }
 	
+    private String robotUrlFormatter(String domainName){
+    	String robotTextPath;
+    	StringBuilder robotFixer = new StringBuilder(domainName);
+		robotFixer = robotFixer.insert(0, "http://");
+		robotFixer = robotFixer.append("/robots.txt");
+		robotTextPath = robotFixer.toString().replaceAll("#", "");
+    	return robotTextPath;
+    }
     /*
      * @param Element link = href links
      * 
@@ -203,7 +201,7 @@ public class Spider {
 				if (uri != null){
 					String domain = uri.getHost();
 					if (domain != null){
-					System.out.println(urlPatcher(domain));	
+					System.out.println(httpFormatter(domain));	
 					return domain;
 					/*if (!prohibitedURLs.containsKey(domain)){
 					
@@ -229,7 +227,7 @@ public class Spider {
 	}
 	
 	private void processRobot(String domainName){
-		String robotTextString = urlPatcher(domainName); //here
+		String robotTextString = robotUrlFormatter(domainName); //here
 		boolean start = false;
 	    
 		
