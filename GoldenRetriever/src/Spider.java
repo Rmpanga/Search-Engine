@@ -5,10 +5,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.LinkedList;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -19,27 +17,30 @@ import org.jsoup.select.Elements;
 
 /* TODO
  * 
- * Verify Robots.txt parsing
- * Verify Robots.txt datastructure
- * Verify restrict = false 
- * Walkthrough/Clean
+ * Verify Robots.txt parsing done
+ * Verify Robots.txt datastructure done
+ * Verify restrict = false  done
+ * Walkthrough/Clean done
  * 
+ * Place processed urls to a text file
  */
 
 public class Spider {
 
 	final String name = "Golden-Retriever";
-	HashMap<String, LinkedList<String>> prohibitedURLs;
-	LinkedList<String> urlQueue;
-	LinkedList<String> processedURLs;
+	private HashMap<String, LinkedList<String>> prohibited;
+	private LinkedList<String> frontier;
+	private LinkedList<String> processedURLs;
+	private int linksVisted;
+	private int robotCount;
 	
 	public Spider(LinkedList<String> seeds){
-		urlQueue = new LinkedList<String>();
+		frontier = new LinkedList<String>();
 		processedURLs = new LinkedList<String>();
-		prohibitedURLs = new HashMap<String, LinkedList<String>>();
+		prohibited = new HashMap<String, LinkedList<String>>();
 		for (String seed : seeds)
 		{
-			urlQueue.push(seed);
+			frontier.push(seed);
 		}
 	}
 	
@@ -52,66 +53,13 @@ public class Spider {
 	 * Explores the web and fetches links 
 	 */
 	public void explore(int delay, int completion, boolean restrict) {
-		//int urlCount = 0;
-		//Document doc;
 		
-		while (!urlQueue.isEmpty() && processedURLs.size() < completion){
-			String urlString = urlPatcher(urlQueue.poll().replaceAll("#", ""));
+		while (!frontier.isEmpty() && processedURLs.size() < completion){
+			String urlString = urlPatcher(frontier.poll().replaceAll("#", ""));
 			if (restrict == true){
 				if ((!processedURLs.contains(urlString) && urlString.contains("cs.umass.edu"))){
 					exploreUtlity(urlString, delay);
-				/*	if ((!processedURLs.contains(urlString) && urlString.contains("cs.umass.edu"))){ //Dont need processedURLs... 
-				   String domainName = getDomainName(urlString);
-				   if (domainName != null && !prohibitedURLs.containsKey(domainName)){
-					   processRobot(domainName);
-				   }
-				
-					doc = createConnection(urlString);
-					
-				    if (doc != null){
-				    	//processRobot(urlString);
-				    	Elements links = doc.select("a[href]"); 
-				    	LinkedList<String> disallowed = prohibitedURLs.get(domainName);
-				    	for (Element link : links)
-				    	{
-				    		String urlPatched = urlPatcher(link);	
-				    		if (!processedURLs.contains(urlPatched))
-				    		{				   
-				    			boolean allowed = true;
-							    //String urlPatched = urlPatcher(link);							    
-				    			if (urlPatched.contains("http") && ( urlPatched.contains(".pdf") || urlPatched.contains(".html")))
-				    			{
-				    				for (int j = 0; j < disallowed.size(); j++){
-				    				  if (!disallowed.get(j).toLowerCase().equals(urlPatched.toLowerCase())){
-				                          allowed = false;
-				                          break;
-				    				  }
-				    					
-				    				}
-				    				if (allowed){  
-				    				urlQueue.push(urlPatched);
-				    				}
-				    				else System.out.println("HIT ROBOTS.TXT: LINK WAS NOT ALLOWED BY ROBOTS.TXT FOR " + domainName);
-				   
-				    			} 
-				    			else{ 
-				    				System.out.println("FAILED TO PUSH: Link did not pass html and pdf test"); }
-							
-				    		} 
-				    		else{ 
-				    			System.out.println("FAILED TO PUSH: Already processed " + urlPatched); }
-				    	}
-				    	processedURLs.add(urlString);
-				    	urlCount++;
-				    	System.out.println("URL Count : " + urlCount);
-				    	try {
-				    		System.out.println("Delay starting");
-				    		Thread.sleep(delay*1000);
-				    		System.out.println("Delay ended");
-				    	} catch (InterruptedException e) { e.printStackTrace(); }
-				    }//end of if = null
-				 
-			*/	}//end of restrict == true 
+				}
 			}
 			else if (restrict == false)
 			{
@@ -139,16 +87,17 @@ public class Spider {
 		Document doc;
 		String domainName = getDomainName(urlString);
 		  
-		if (domainName != null && !prohibitedURLs.containsKey(domainName)){
+		if (domainName != null && !prohibited.containsKey(domainName)){
 			   processRobot(domainName); 
 		   }
 		
 			doc = createConnection(urlString);
 			
+			
 		    if (doc != null){
 		    	//processRobot(urlString);
 		    	Elements links = doc.select("a[href]"); 
-		    	LinkedList<String> disallowed = prohibitedURLs.get(domainName);
+		    	LinkedList<String> disallowed = prohibited.get(domainName);
 		    	for (Element link : links)
 		    	{
 		    		String urlPatched = absUrlFormater(link);	
@@ -156,7 +105,7 @@ public class Spider {
 		    		{				   
 		    			boolean allowed = true;
 					    //String urlPatched = urlPatcher(link);							    
-		    			if (urlPatched.contains("http")) //&& ( urlPatched.contains(".pdf") || urlPatched.contains(".html")))
+		    			if (urlPatched.contains("http") && ( urlPatched.contains(".pdf") || urlPatched.contains(".html")))
 		    			{
 		    				if (disallowed != null)
 		    				for (int j = 0; j < disallowed.size(); j++){
@@ -167,7 +116,7 @@ public class Spider {
 		    					
 		    				}
 		    				if (allowed){  
-		    				urlQueue.push(urlPatched);
+		    				frontier.push(urlPatched);
 		    				}
 		    				else{ 
 		    					System.out.println();
@@ -192,6 +141,17 @@ public class Spider {
 		    }//end of if = null
 	
 	}
+	
+	/*Param
+	 * url : url to formart
+	 * 
+	 * Reomve https from url string
+	 * 
+	 * if url does not have http then its a domain name
+	 * Add http:// and append /robots.txt 
+     *
+	 * @return formated string
+	 */
 	
     private String urlPatcher(String url){
     	String urlpatched = url;
@@ -236,7 +196,7 @@ public class Spider {
 	}
 	
 	
-	public String getDomainName(String url){
+	private String getDomainName(String url){
 		URI uri;
 		try {
 			uri = new URI (url);
@@ -260,14 +220,15 @@ public class Spider {
 	}
 	
 	public void testBannedUrls(){
-		System.out.println();
-		System.out.println("************************** TESTING BANNED URLS *************************");
-	//	for (String url : bannedURLs)
-		//	System.out.println(url);
-		System.out.println("************************** END TESTING FOR BANNED URLS *************************");
+		for (LinkedList<String> values : prohibited.values()){
+			
+			for (String value : values)
+			//String domain = prohibitedURLs.
+			System.out.println("Disallowed to go to " + value);
+		}
 	}
 	
-	public void processRobot(String domainName){
+	private void processRobot(String domainName){
 		String robotTextString = urlPatcher(domainName); //here
 		boolean start = false;
 	    
@@ -282,12 +243,14 @@ public class Spider {
 			   
 			while ((line = in.readLine()) != null){
 				line = line.toLowerCase();
-				System.out.println("TESTING LINE: " + line);
+				//System.out.println("TESTING LINE: " + line);
 				if (start = true){
 					if (line.contains("disallow")){
 		          		String [] split = line.split(" ");
+		          		if (split.length == 2){
 		          		String noCrawl = split[1].toLowerCase().trim();
 		          		disallowed.add(noCrawl);
+		          		}
 		          	}
 					
 				}
@@ -301,15 +264,16 @@ public class Spider {
 				}
 			
 			}
-			prohibitedURLs.put(domainName, disallowed);
+			robotCount++;
+			prohibited.put(domainName, disallowed);
 			
 		} catch (MalformedURLException e) {
-		  System.out.println("ERROR: Robot URL does not exist for " + robotTextString);
-			e.printStackTrace();
+		  System.err.println("ERROR: Robot URL does not exist for " + robotTextString);
+			//e.printStackTrace();
 		}
 		
 		  catch (IOException e ){
-			System.out.println("ERROR: Problem with reading robots.txt file for " + robotTextString);  
+			System.err.println("ERROR: Problem with reading robots.txt file for " + robotTextString);  
 		  }
 	  
 	}
@@ -320,6 +284,7 @@ public class Spider {
 		try {
 			Document doc =  Jsoup.connect(urlString).get();
 			doc = Jsoup.parse(doc.html() , urlString);
+			linksVisted++;
 			return doc;
 			//return Jsoup.connect(urlString).ignoreContentType(false).get();
 			
@@ -329,6 +294,17 @@ public class Spider {
 	     return null;
 	}
 	
+	public int getRobotCount(){
+		return robotCount;
+	}
+	
+	public int getFrontierSize(){
+		return frontier.size();
+	}
+	
+	public int getLinksVisted(){
+		return linksVisted;
+	}
 	
 	public void printProcessedURLs(){
 		System.out.println();
