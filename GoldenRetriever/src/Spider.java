@@ -23,7 +23,6 @@ import org.jsoup.select.Elements;
  * Verify Robots.txt datastructure done
  * Verify restrict = false  done
  * Walkthrough/Clean done
- * 
  * Place processed urls to a text file
  */
 
@@ -33,9 +32,13 @@ public class Spider {
 	private HashMap<String, LinkedList<String>> prohibited;
 	private LinkedList<String> frontier;
 	private ArrayList<String> processedURLs;
+	private int[][] stats = new int[1000][10000];
 	private int pagesVisited;
 	private int robotCount;
 	private int urlCount;
+	//private int docNum;
+	public ArrayList<Integer> data = new ArrayList<Integer>(); 
+	//private int tesst;
 	
 	public Spider(LinkedList<String> seeds){
 		frontier = new LinkedList<String>();
@@ -44,7 +47,7 @@ public class Spider {
 		urlCount = seeds.size();
 		for (String seed : seeds)
 		{
-			frontier.push(seed);
+			frontier.offer(seed);
 		}
 	}
 	
@@ -90,6 +93,7 @@ public class Spider {
 	private void exploreUtlity(String urlString,  int delay, int completion ){
 		Document doc;
 		String domainName = getDomainName(urlString);
+		int uniqueLinks = 0;
 		  
 		if (domainName != null && !prohibited.containsKey(domainName)){
 			   processRobot(domainName); 
@@ -121,29 +125,36 @@ public class Spider {
 		    					
 		    				}
 		    				if (allowed && urlCount < completion){  
-		    					frontier.push(urlPatched);
+		    					frontier.offer(urlPatched);
+		    					uniqueLinks++;
 		    					urlCount++;
 		    				}
 		    				else{ 
-		    					System.out.println();
-		    					System.out.println("HIT ROBOTS.TXT: LINK WAS NOT ALLOWED BY ROBOTS.TXT FOR " + domainName);}
+		    					//System.out.println();
+		    					//System.out.println("HIT ROBOTS.TXT: LINK WAS NOT ALLOWED BY ROBOTS.TXT FOR " + domainName);
+		    					}
 		   
 		    			} 
 		    			else{ 
-		    				System.out.println();
-		    				System.out.println("FAILED TO PUSH: Link did not pass html and pdf test"); }
-					
+		    				//System.out.println();
+		    			//	System.out.println("FAILED TO PUSH: Link did not pass html and pdf test"); 
+		    				}
+			
 		    		} 
 		    		else{ 
-		    			System.out.println();
-		    			System.out.println("FAILED TO PUSH: Already processed " + urlPatched); }
+		    			//System.out.println();
+		    			//System.out.println("FAILED TO PUSH: Already processed " + urlPatched); 
+		    			}
 		    	}
+		    	data.add(uniqueLinks);
 		    	processedURLs.add(urlString);
 		    	//urlCount++;
 		    	//System.out.println("URL Count : " + urlCount);
 		    	try {
 		    		Thread.sleep(delay*1000);
 		    	} catch (InterruptedException e) { e.printStackTrace(); }
+		    
+		    
 		    }//end of if = null
 	
 	}
@@ -207,7 +218,7 @@ public class Spider {
 				if (uri != null){
 					String domain = uri.getHost();
 					if (domain != null){
-					System.out.println(httpFormatter(domain));	
+					//System.out.println(httpFormatter(domain));	
 					return domain;
 					/*if (!prohibitedURLs.containsKey(domain)){
 					
