@@ -68,7 +68,7 @@ public class Tokenizer {
 		
 	}
 	
-	/*Ugly but functionally
+	/*Ugly but functional
 	 * Problem [ Richard  | Best | fea | tures | null | null | null | null | ]
 	 * ArrayList Remove method shifts the words down
 	 * Find a way to utilize this feature 
