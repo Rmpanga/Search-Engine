@@ -68,6 +68,12 @@ public class StopWords {
 		System.out.println("Did not change stopword value, word does not exist");
 	}
 	
+	public void printStopWords(){
+		
+		for (String key : stopwords.keySet()){
+			System.out.println("Stopword key: " + key + " " + stopwords.get(key));
+		}
+	}
 
 }
  
