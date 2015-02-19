@@ -8,12 +8,12 @@ public class TextProcessingDriver {
 	public static void main(String[] args) {
 	  
      // tokenizer.addFileForProcessing("C:\Users\Richard\Desktop");
-    //  tokenizer.readFile("C:\\Users\\Richard\\Desktop\\test.txt");
+      tokenizer.readFile("C:\\Users\\Richard\\Documents\\CS446\\Project Docs\\P2\\test.txt");
 		
-		stopWords.insertStopWordsFromFile("C:\\Users\\Richard\\Documents\\CS446\\Project Docs\\P2\\Stopwords.txt");
+		//stopWords.insertStopWordsFromFile("C:\\Users\\Richard\\Documents\\CS446\\Project Docs\\P2\\Stopwords.txt");
 		System.out.println();
-		stopWords.printStopWords();
-    //  tokenizer.printHashMap();
+		//stopWords.printStopWords();
+     tokenizer.printHashMap();
       
 	}
 

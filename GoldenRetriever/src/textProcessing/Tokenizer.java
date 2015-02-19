@@ -15,8 +15,20 @@ import java.util.Set;
 
 public class Tokenizer {
 
-	static HashMap  <String, Integer> tokens = new HashMap<String , Integer> (); 
+	static HashMap  <String, Integer> tokens; 
+	static StopWords stopWords;
+	
 	LinkedList<String> waitingFiles = new LinkedList<String> ();
+	
+	public Tokenizer(){
+		initialize();
+	}
+	
+	private static void initialize(){
+		tokens = new HashMap<String , Integer> (); 
+		stopWords = new StopWords();
+		stopWords.insertStopWordsFromFile("C:\\Users\\Richard\\Documents\\CS446\\Project Docs\\P2\\Stopwords.txt");
+	}
 	
 	
 	public void addFileForProcessing(String file){
@@ -42,11 +54,11 @@ public class Tokenizer {
 					if (tokens.containsKey(newTokens.get(j))){
 						tokens.put( newTokens.get(j), tokens.get(newTokens.get(j)) + 1 );
 					}
-					else if (!tokens.containsKey(newTokens.get(j))){
+					else if (!tokens.containsKey(newTokens.get(j) ) && !stopWords.isStopWord(newTokens.get(j))){
 						tokens.put(newTokens.get(j), 1);
 						
 					}
-					
+				
 				}
 
 			
@@ -129,7 +141,7 @@ public class Tokenizer {
 			tokens.removeAll(Collections.singleton(null));
 		}
 		
-			    
+		tokens.removeAll(Collections.singleton(null));	    
 		return tokens;
 	}
 	
@@ -172,17 +184,18 @@ public class Tokenizer {
 	
 	public static void main(String [] args){
 		
-	 String test = "Richard,s best's feature's are,s he's mi,nds Richard";
+	 String test = "Richard";
+	 initialize();
+	
 	 
 	 ArrayList<String> t;
-	 
 	 t = tokenize(test);
 	 System.out.println();
 	 
 	 System.out.println(t.size());
 	 
 		for (int j = 0; j<t.size(); j++){
-			
+			System.out.println("Hello " + t.get(j));
 			if (tokens.containsKey(t.get(j))){
 				tokens.put( t.get(j), tokens.get(t.get(j)) + 1 );
 			}
@@ -193,7 +206,7 @@ public class Tokenizer {
 			
 		}
 	 
-		System.out.println(tokens.get("h"));
+	
 		
 
 	 //System.out.println(t.get(0));
